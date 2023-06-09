@@ -1,0 +1,716 @@
+openapi: 3.0.3
+info:
+  title: Tunza API Documentation
+  version: 1.0.0
+servers:
+  - url: http://localhost:8080
+    description: Local server
+paths:
+  /auth/register:
+    post:
+      tags:
+        - Authentication
+      summary: User registration
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                full_name:
+                  type: string
+                email:
+                  type: string
+                password:
+                  type: string
+              example:
+                full_name: John Doe
+                email: john@example.com
+                password: passw0rd
+      responses:
+        "200":
+          description: User registered successfully
+        "400":
+          description: Invalid request
+
+  /auth/login:
+    post:
+      tags:
+        - Authentication
+      summary: User login
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                email:
+                  type: string
+                password:
+                  type: string
+              example:
+                email: john@example.com
+                password: passw0rd
+      responses:
+        "200":
+          description: User logged in successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  token:
+                    type: string
+                  refresh_token_expiry:
+                    type: string
+              example:
+                token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                refresh_token: eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9...
+                expiry: 2023-02-02 34
+        "401":
+          description: Unauthorized
+
+  /users:
+    get:
+      tags:
+        - Users
+      summary: Get all users
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/User"
+      security:
+        - bearerAuth: []
+
+  /users/{id}:
+    get:
+      tags:
+        - Users
+      summary: Get a user by ID
+      parameters:
+        - name: id
+          in: path
+          description: User ID
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "404":
+          description: User not found
+    put:
+      tags:
+        - Users
+      summary: Update a user by ID
+      parameters:
+        - name: id
+          in: path
+          description: User ID
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/UserInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+        "404":
+          description: User not found
+    delete:
+      tags:
+        - Users
+      summary: Delete a user by ID
+      parameters:
+        - name: id
+          in: path
+          description: User ID
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: User not found
+  /media:
+    get:
+      tags:
+        - Media
+      summary: Get all media files
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Media"
+    post:
+      tags:
+        - Media
+      summary: Upload a new media file
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/MediaInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Media"
+
+  /media/passport:
+    post:
+      tags:
+        - Media
+      summary: Upload passport image
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                image:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: Passport image uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  id:
+                    type: integer
+                  file_name:
+                    type: string
+                  type:
+                    type: string
+                    enum:
+                      - PASSPORT
+                  url:
+                    type: string
+
+  /media/id_doc:
+    post:
+      tags:
+        - Media
+      summary: Upload ID images (front and back sides)
+      requestBody:
+        required: true
+        content:
+          multipart/form-data:
+            schema:
+              type: object
+              properties:
+                front_side:
+                  type: string
+                  format: binary
+                back_side:
+                  type: string
+                  format: binary
+      responses:
+        "200":
+          description: ID images uploaded successfully
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    id:
+                      type: integer
+                    file_name:
+                      type: string
+                    type:
+                      type: string
+                      pattern: "^ID_(FRONT|BACK)$"
+                    url:
+                      type: string
+
+  /media/{id}:
+    get:
+      tags:
+        - Media
+      summary: Get a media file by ID
+      parameters:
+        - name: id
+          in: path
+          description: Media ID
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Media"
+        "404":
+          description: Media file not found
+    delete:
+      tags:
+        - Media
+      summary: Delete a media file by ID
+      parameters:
+        - name: id
+          in: path
+          description: Media ID
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Media file not found
+  /plans:
+    get:
+      tags:
+        - Plans
+      summary: Get all plans
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Plan"
+  /plans/{id}:
+    get:
+      tags:
+        - Plans
+      summary: Get a plan by ID
+      parameters:
+        - name: id
+          in: path
+          description: Plan ID
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Plan"
+        "404":
+          description: Plan not found
+  /subscriptions:
+    get:
+      tags:
+        - Subscriptions
+      summary: Get all subscriptions
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Subscription"
+    post:
+      tags:
+        - Subscriptions
+      summary: Create a new subscription
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubscriptionInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Subscription"
+  /subscriptions/{id}:
+    get:
+      tags:
+        - Subscriptions
+      summary: Get a subscription by ID
+      parameters:
+        - name: id
+          in: path
+          description: Subscription ID
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Subscription"
+        "404":
+          description: Subscription not found
+    put:
+      tags:
+        - Subscriptions
+      summary: Update a subscription by ID
+      parameters:
+        - name: id
+          in: path
+          description: Subscription ID
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/SubscriptionInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Subscription"
+        "404":
+          description: Subscription not found
+    delete:
+      tags:
+        - Subscriptions
+      summary: Delete a subscription by ID
+      parameters:
+        - name: id
+          in: path
+          description: Subscription ID
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Subscription not found
+  /transactions:
+    get:
+      tags:
+        - Transactions
+      summary: Get all transactions
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Transaction"
+    post:
+      tags:
+        - Transactions
+      summary: Create a new transaction
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransactionInput"
+      responses:
+        "201":
+          description: Created
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transaction"
+  /transactions/{id}:
+    get:
+      tags:
+        - Transactions
+      summary: Get a transaction by ID
+      parameters:
+        - name: id
+          in: path
+          description: Transaction ID
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transaction"
+        "404":
+          description: Transaction not found
+    put:
+      tags:
+        - Transactions
+      summary: Update a transaction by ID
+      parameters:
+        - name: id
+          in: path
+          description: Transaction ID
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/TransactionInput"
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Transaction"
+        "404":
+          description: Transaction not found
+    delete:
+      tags:
+        - Transactions
+      summary: Delete a transaction by ID
+      parameters:
+        - name: id
+          in: path
+          description: Transaction ID
+          required: true
+          schema:
+            type: integer
+      responses:
+        "204":
+          description: No Content
+        "404":
+          description: Transaction not found
+components:
+  schemas:
+    User:
+      type: object
+      properties:
+        id:
+          type: integer
+        full_name:
+          type: string
+        avatar:
+          type: string
+        email:
+          type: string
+        location:
+          type: string
+        password:
+          type: string
+        role:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - full_name
+        - email
+        - password
+        - created_at
+    UserInput:
+      type: object
+      properties:
+        full_name:
+          type: string
+        avatar:
+          type: string
+        email:
+          type: string
+        location:
+          type: string
+        password:
+          type: string
+        role:
+          type: string
+      required:
+        - full_name
+        - email
+        - password
+    Media:
+      type: object
+      properties:
+        id:
+          type: integer
+        type:
+          type: string
+        file_name:
+          type: string
+        file_size:
+          type: integer
+        user_id:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - type
+        - file_name
+        - file_size
+        - user_id
+        - created_at
+    MediaInput:
+      type: object
+      properties:
+        type:
+          type: string
+          enum:
+            - ICON
+            - PASSPORT
+            - ID_BACK
+            - ID_FRONT
+        file_name:
+          type: string
+        file_size:
+          type: integer
+        user_id:
+          type: integer
+      required:
+        - type
+        - file_name
+        - file_size
+        - user_id
+    Plan:
+      type: object
+      properties:
+        id:
+          type: integer
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: integer
+        icon:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - name
+        - description
+        - price
+        - icon
+        - created_at
+    Subscription:
+      type: object
+      properties:
+        id:
+          type: integer
+        plan_id:
+          type: integer
+        user_id:
+          type: integer
+        status:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - plan_id
+        - user_id
+        - status
+        - created_at
+    SubscriptionInput:
+      type: object
+      properties:
+        plan_id:
+          type: integer
+        user_id:
+          type: integer
+        status:
+          type: string
+          enum:
+            - ACTIVE
+            - STALE
+            - DISABLED
+      required:
+        - plan_id
+        - user_id
+        - status
+    Transaction:
+      type: object
+      properties:
+        id:
+          type: integer
+        subscription_id:
+          type: integer
+        method:
+          type: string
+        status:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+      required:
+        - id
+        - subscription_id
+        - method
+        - status
+        - created_at
+    TransactionInput:
+      type: object
+      properties:
+        subscription_id:
+          type: integer
+        method:
+          type: string
+          enum:
+            - MPESA
+            - GOOGLE_PAY
+            - VISA
+        status:
+          type: string
+          enum:
+            - SUCCESS
+            - FAIL
+            - IN_REVIEW
+      required:
+        - subscription_id
+        - method
+        - status
+
+securitySchemes:
+  bearerAuth:
+    type: http
+    scheme: bearer
+    bearerFormat: JWT
