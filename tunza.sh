@@ -1,2 +1,2 @@
 #!/bin/bash
-dart run lib/main.dart
+dart pub get && dart run lib/main.dart

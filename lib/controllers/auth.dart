@@ -57,7 +57,7 @@ class AuthController extends Controller with DbMixin {
         },
       );
 
-      return Response.ok(
+      return Response.created(
         {...body},
       );
     } catch (e) {
