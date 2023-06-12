@@ -1,2 +1,2 @@
 #!/bin/bash
-zero run --no-watch
+dart run lib/main.dart
