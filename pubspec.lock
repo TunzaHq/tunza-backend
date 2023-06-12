@@ -500,8 +500,8 @@ packages:
   zero:
     dependency: "direct main"
     description:
-      path: ".."
-      relative: true
+      path: "/home/kawasaki/Projects/namani/packages/zero"
+      relative: false
     source: path
     version: "0.3.2-dev.3"
 sdks:
