@@ -61,6 +61,7 @@ class AuthController extends Controller with DbMixin {
         {...body},
       );
     } catch (e) {
+      print(e);
       switch (e) {
         case PostgreSQLException:
           return Response.badRequest({
