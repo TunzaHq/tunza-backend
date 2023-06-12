@@ -11,6 +11,7 @@ dependencies:
     git:
       url: https://github.com/bryanbill/zero
       ref: dev
+  
   postgres: ^2.6.1
   dart_jsonwebtoken: ^2.7.1
   crypto: ^3.0.1

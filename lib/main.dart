@@ -15,23 +15,26 @@ void main() async {
   await Database()
     ..connect();
 
-  final zero = Server(routes: [
-    // Documentation and Index
-    Route(path: "/favicon.ico", controller: (req) => IndexController(req)),
-    Route(path: "/docs", controller: (req) => SwaggerController(req)),
+  final zero = Server(
+    port: 9790,
+    routes: [
+      // Documentation and Index
+      Route(path: "/favicon.ico", controller: (req) => IndexController(req)),
+      Route(path: "/docs", controller: (req) => SwaggerController(req)),
 
-    Route(path: '/auth', controller: (req) => AuthController(req)),
-    Route(path: "/users", controller: (req) => UserController(req)),
-    Route(path: '/media', controller: (req) => MediaController(req)),
-    Route(
-        path: "/transactions",
-        controller: (req) => TransactionsController(req)),
-    Route(
-        path: '/subscriptions',
-        controller: (req) => SubscriptionsController(req)),
-    Route(path: "/plans", controller: (req) => PlansController(req)),
-    Route(path: "/claims", controller: (req) => ClaimsController(req))
-  ]);
+      Route(path: '/auth', controller: (req) => AuthController(req)),
+      Route(path: "/users", controller: (req) => UserController(req)),
+      Route(path: '/media', controller: (req) => MediaController(req)),
+      Route(
+          path: "/transactions",
+          controller: (req) => TransactionsController(req)),
+      Route(
+          path: '/subscriptions',
+          controller: (req) => SubscriptionsController(req)),
+      Route(path: "/plans", controller: (req) => PlansController(req)),
+      Route(path: "/claims", controller: (req) => ClaimsController(req))
+    ],
+  );
 
   zero.run();
 
