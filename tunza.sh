@@ -1,2 +1,2 @@
 #!/bin/bash
-zero run
+zero run --no-watch
