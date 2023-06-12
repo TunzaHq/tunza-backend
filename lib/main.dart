@@ -1,29 +1,36 @@
 import 'dart:io';
 
-import 'package:tunza/controllers/auth_controller.dart';
-import 'package:tunza/controllers/media_controller.dart';
-import 'package:tunza/controllers/plans_controller.dart';
-import 'package:tunza/controllers/subscriptions_controller.dart';
-import 'package:tunza/controllers/transactions_controller.dart';
-import 'package:tunza/controllers/user_controller.dart';
+import 'package:tunza/controllers/auth.dart';
+import 'package:tunza/controllers/claims.dart';
+import 'package:tunza/controllers/media.dart';
+import 'package:tunza/controllers/plans.dart';
+import 'package:tunza/controllers/subscriptions.dart';
+import 'package:tunza/controllers/transactions.dart';
+import 'package:tunza/controllers/user.dart';
+import 'package:tunza/utils/database.dart';
 import 'package:zero/utils/swagger_ui.dart';
 import 'package:zero/zero.dart';
- 
-void main() {
+
+void main() async {
+  await Database()
+    ..connect();
+
   final zero = Server(routes: [
     // Documentation and Index
     Route(path: "/favicon.ico", controller: (req) => IndexController(req)),
     Route(path: "/docs", controller: (req) => SwaggerController(req)),
 
-  
     Route(path: '/auth', controller: (req) => AuthController(req)),
     Route(path: "/users", controller: (req) => UserController(req)),
     Route(path: '/media', controller: (req) => MediaController(req)),
-    Route(path: "/transactions", controller: (req) => TransactionsController(req)),
-    Route(path: '/subscriptions', controller: (req) => SubscriptionsController(req)),
+    Route(
+        path: "/transactions",
+        controller: (req) => TransactionsController(req)),
+    Route(
+        path: '/subscriptions',
+        controller: (req) => SubscriptionsController(req)),
     Route(path: "/plans", controller: (req) => PlansController(req)),
-
-
+    Route(path: "/claims", controller: (req) => ClaimsController(req))
   ]);
 
   zero.run();
@@ -31,7 +38,8 @@ void main() {
   print('Listening on port ${zero.port}');
 }
 
-class SwaggerController extends Controller {  SwaggerController(Request request) : super(request);
+class SwaggerController extends Controller {
+  SwaggerController(Request request) : super(request);
 
   @Path('/')
   Future<Response> hello() async {

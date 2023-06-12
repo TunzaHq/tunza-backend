@@ -1,10 +1,11 @@
-openapi: 3.0.3
+openapi: 3.0.0
 info:
   title: Tunza API Documentation
   version: 1.0.0
 servers:
   - url: http://localhost:8080
     description: Local server
+
 paths:
   /auth/register:
     post:
@@ -72,28 +73,55 @@ paths:
         "401":
           description: Unauthorized
 
-  /users:
+  /users/me:
     get:
       tags:
         - Users
-      summary: Get all users
+      summary: Get current user
       responses:
         "200":
           description: OK
           content:
             application/json:
               schema:
-                type: array
-                items:
-                  $ref: "#/components/schemas/User"
+                $ref: "#/components/schemas/User"
       security:
         - bearerAuth: []
+          in: header
+    put:
+      tags:
+        - Users
+      summary: Update current user
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                avatar:
+                  type: string
+                location:
+                  type: string
+
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/User"
+      security:
+        - bearerAuth: []
+          in: header
 
   /users/{id}:
     get:
       tags:
         - Users
       summary: Get a user by ID
+      security:
+        - bearerAuth: []
       parameters:
         - name: id
           in: path
@@ -114,6 +142,8 @@ paths:
       tags:
         - Users
       summary: Update a user by ID
+      security:
+        - bearerAuth: []
       parameters:
         - name: id
           in: path
@@ -140,6 +170,8 @@ paths:
       tags:
         - Users
       summary: Delete a user by ID
+      security:
+        - bearerAuth: []
       parameters:
         - name: id
           in: path
@@ -152,11 +184,14 @@ paths:
           description: No Content
         "404":
           description: User not found
+
   /media:
     get:
       tags:
         - Media
       summary: Get all media files
+      security:
+        - bearerAuth: []
       responses:
         "200":
           description: OK
@@ -170,6 +205,8 @@ paths:
       tags:
         - Media
       summary: Upload a new media file
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -189,6 +226,8 @@ paths:
       tags:
         - Media
       summary: Upload passport image
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -223,6 +262,8 @@ paths:
       tags:
         - Media
       summary: Upload ID images (front and back sides)
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -298,6 +339,8 @@ paths:
       tags:
         - Plans
       summary: Get all plans
+      security:
+        - bearerAuth: []
       responses:
         "200":
           description: OK
@@ -307,11 +350,36 @@ paths:
                 type: array
                 items:
                   $ref: "#/components/schemas/Plan"
+
+    post:
+      tags:
+        - Plans
+      summary: Create a new plan
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/PlanInput"
+        responses:
+          "201":
+            description: Created
+            content:
+              application/json:
+                schema:
+                  $ref: "#/components/schemas/Plan"
+          "400":
+            description: Bad Request
+
   /plans/{id}:
     get:
       tags:
         - Plans
       summary: Get a plan by ID
+      security:
+        - bearerAuth: []
       parameters:
         - name: id
           in: path
@@ -333,6 +401,8 @@ paths:
       tags:
         - Subscriptions
       summary: Get all subscriptions
+      security:
+        - bearerAuth: []
       responses:
         "200":
           description: OK
@@ -346,6 +416,8 @@ paths:
       tags:
         - Subscriptions
       summary: Create a new subscription
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -364,6 +436,8 @@ paths:
       tags:
         - Subscriptions
       summary: Get a subscription by ID
+      security:
+        - bearerAuth: []
       parameters:
         - name: id
           in: path
@@ -384,6 +458,8 @@ paths:
       tags:
         - Subscriptions
       summary: Update a subscription by ID
+      security:
+        - bearerAuth: []
       parameters:
         - name: id
           in: path
@@ -410,6 +486,8 @@ paths:
       tags:
         - Subscriptions
       summary: Delete a subscription by ID
+      security:
+        - bearerAuth: []
       parameters:
         - name: id
           in: path
@@ -427,6 +505,8 @@ paths:
       tags:
         - Transactions
       summary: Get all transactions
+      security:
+        - bearerAuth: []
       responses:
         "200":
           description: OK
@@ -440,6 +520,8 @@ paths:
       tags:
         - Transactions
       summary: Create a new transaction
+      security:
+        - bearerAuth: []
       requestBody:
         required: true
         content:
@@ -458,6 +540,8 @@ paths:
       tags:
         - Transactions
       summary: Get a transaction by ID
+      security:
+        - bearerAuth: []
       parameters:
         - name: id
           in: path
@@ -478,6 +562,8 @@ paths:
       tags:
         - Transactions
       summary: Update a transaction by ID
+      security:
+        - bearerAuth: []
       parameters:
         - name: id
           in: path
@@ -504,6 +590,8 @@ paths:
       tags:
         - Transactions
       summary: Delete a transaction by ID
+      security:
+        - bearerAuth: []
       parameters:
         - name: id
           in: path
@@ -516,6 +604,92 @@ paths:
           description: No Content
         "404":
           description: Transaction not found
+  /claims:
+    get:
+      tags:
+        - Claims
+      summary: Get all claims
+      security:
+        - bearerAuth: []
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: array
+                items:
+                  $ref: "#/components/schemas/Claim"
+    post:
+      tags:
+        - Claims
+      summary: Create a new claim
+      security:
+        - bearerAuth: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: "#/components/schemas/ClaimInput"
+      responses:
+        "201":
+          description: Created
+
+  /claims/{id}:
+    get:
+      tags:
+        - Claims
+      summary: Get a claim by ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: Claim ID
+          required: true
+          schema:
+            type: integer
+      responses:
+        "200":
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: "#/components/schemas/Claim"
+        "404":
+          description: Claim not found
+    put:
+      tags:
+        - Claims
+      summary: Update a transaction by ID
+      security:
+        - bearerAuth: []
+      parameters:
+        - name: id
+          in: path
+          description: Claim ID
+          required: true
+          schema:
+            type: integer
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              properties:
+                status:
+                  type: string
+                  enum: [pending, approved, rejected]
+      responses:
+        "200":
+          description: OK
+        "404":
+          description: Claim not found
+        "500":
+          description: Internal Server Error
+
 components:
   schemas:
     User:
@@ -563,6 +737,41 @@ components:
         - full_name
         - email
         - password
+    Claim:
+      type: object
+      properties:
+        id:
+          type: integer
+        location:
+          type: string
+        amount:
+          type: integer
+        subscription_id:
+          type: string
+        description:
+          type: string
+        status:
+          type: string
+        created_at:
+          type: string
+          format: date-time
+        updated_at:
+          type: string
+          format: date-time
+    ClaimInput:
+      type: object
+      properties:
+        location:
+          type: string
+        subscription_id:
+          type: integer
+        description:
+          type: string
+       
+      required:
+        - location
+        - subscription_id
+        - description
     Media:
       type: object
       properties:
@@ -630,6 +839,22 @@ components:
         - price
         - icon
         - created_at
+    PlanInput:
+      type: object
+      properties:
+        name:
+          type: string
+        description:
+          type: string
+        price:
+          type: integer
+        icon:
+          type: string
+      required:
+        - name
+        - description
+        - price
+        - icon
     Subscription:
       type: object
       properties:
@@ -709,8 +934,8 @@ components:
         - method
         - status
 
-securitySchemes:
-  bearerAuth:
-    type: http
-    scheme: bearer
-    bearerFormat: JWT
+  securitySchemes:
+    bearerAuth:
+      type: http
+      scheme: bearer
+      bearerFormat: JWT
