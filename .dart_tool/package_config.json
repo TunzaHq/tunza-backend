@@ -375,7 +375,7 @@
     },
     {
       "name": "zero",
-      "rootUri": "file:///home/kawasaki/Projects/namani/packages/zero",
+      "rootUri": "file:///home/kawasaki/.pub-cache/git/zero-57605750885ebe1f9cfa1ddb9e17a4f8da30b0c1/",
       "packageUri": "lib/",
       "languageVersion": "3.0"
     },
@@ -386,7 +386,7 @@
       "languageVersion": "2.12"
     }
   ],
-  "generated": "2023-06-12T13:53:58.624143Z",
+  "generated": "2023-06-12T14:13:12.386796Z",
   "generator": "pub",
   "generatorVersion": "3.1.0-63.1.beta"
 }

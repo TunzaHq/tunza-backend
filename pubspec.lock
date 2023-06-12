@@ -500,9 +500,11 @@ packages:
   zero:
     dependency: "direct main"
     description:
-      path: "/home/kawasaki/Projects/namani/packages/zero"
-      relative: false
-    source: path
+      path: "."
+      ref: dev
+      resolved-ref: "57605750885ebe1f9cfa1ddb9e17a4f8da30b0c1"
+      url: "https://github.com/bryanbill/zero"
+    source: git
     version: "0.3.2-dev.3"
 sdks:
   dart: ">=3.0.0 <4.0.0"
