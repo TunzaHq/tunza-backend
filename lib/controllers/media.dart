@@ -8,7 +8,7 @@ class MediaController extends Controller with DbMixin {
   MediaController(this.request) : super(request);
 
   @Path("/")
-  @Auth()
+  @Admin()
   Future<Response> getAllMedia() async {
     return await conn!.query("SELECT * FROM media").then((value) {
       if (value.isEmpty) {
@@ -68,7 +68,7 @@ class MediaController extends Controller with DbMixin {
   }
 
   @Path("/:id", method: "DELETE")
-  @Auth()
+  @Admin()
   @Param(["id"])
   Future<Response> deleteMedia() async {
     final String? id = request.params?["id"];

@@ -62,7 +62,7 @@ class UserController extends Controller with DbMixin {
   }
 
   @Path("/")
-  @Auth()
+  @Admin()
   Future<Response> getAllUsers() async {
     try {
       final users = await conn?.query('SELECT * FROM users').then((value) {
@@ -79,7 +79,7 @@ class UserController extends Controller with DbMixin {
   }
 
   @Path("/:id")
-  @Auth()
+  @Admin()
   @Param(["id"])
   Future<Response> getUser() async {
     final String? id = request.params?["id"];
@@ -101,7 +101,7 @@ class UserController extends Controller with DbMixin {
   }
 
   @Path("/:id", method: "PUT")
-  @Auth()
+  @Admin()
   @Param(["id"])
   @Body([
     Field("avatar"),
@@ -138,7 +138,7 @@ class UserController extends Controller with DbMixin {
   }
 
   @Path("/:id", method: "DELETE")
-  @Auth()
+  @Admin()
   @Param(["id"])
   Future<Response> deleteUser() async {
     try {

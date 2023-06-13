@@ -8,7 +8,7 @@ class SubscriptionsController extends Controller with DbMixin {
   SubscriptionsController(this.request) : super(request);
 
   @Path("/")
-  @Auth()
+  @Admin()
   Future<Response> getAllSubscriptions() async {
     return await conn?.query('SELECT * FROM subscriptions').then((value) {
           if (value.isEmpty)

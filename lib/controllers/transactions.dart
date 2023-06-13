@@ -8,7 +8,7 @@ class TransactionsController extends Controller with DbMixin {
   TransactionsController(this.request) : super(request);
 
   @Path("/")
-  @Auth()
+  @Admin()
   Future<Response> getAllTransactions() async {
     return await conn?.query('SELECT * FROM transactions').then((value) {
           if (value.isEmpty)
@@ -77,7 +77,7 @@ class TransactionsController extends Controller with DbMixin {
   }
 
   @Path("/:id", method: "PUT")
-  @Auth()
+  @Admin()
   @Param(["id"])
   @Body([
     Field("status", isRequired: true, type: String),
@@ -105,7 +105,7 @@ class TransactionsController extends Controller with DbMixin {
   }
 
   @Path("/:id", method: "DELETE")
-  @Auth()
+  @Admin()
   @Param(["id"])
   Future<Response> deleteTransaction() async {
     try {

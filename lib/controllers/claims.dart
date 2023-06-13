@@ -8,13 +8,14 @@ class ClaimsController extends Controller with DbMixin {
   ClaimsController(this.request) : super(request);
 
   @Path("/")
-  @Auth()
+  @Admin()
   Future<Response> getAllClaims() async {
     return await conn?.query("select * from claims").then((value) {
           if (value.isEmpty) {
             return Response.notFound({"message": "No claims found"});
           }
-          return Response.ok(Claims.fromPostgres(value.first).toJson());
+          var claims = value.map((e) => Claims.fromPostgres(e).toJson());
+          return Response.ok(claims.toList());
         }) ??
         Response.internalServerError({"message": "Something went wrong"});
   }
@@ -68,7 +69,7 @@ class ClaimsController extends Controller with DbMixin {
   }
 
   @Path("/:id", method: "PUT")
-  @Auth()
+  @Admin()
   @Body([
     Field("status", type: String),
   ])

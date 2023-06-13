@@ -24,7 +24,7 @@ class PlansController extends Controller with DbMixin {
   }
 
   @Path("/", method: "POST")
-  @Auth()
+  @Admin()
   @Body([
     Field("name", type: String),
     Field("description", type: String),
@@ -74,7 +74,7 @@ class PlansController extends Controller with DbMixin {
 
   @Path("/:id", method: "PUT")
   @Param(["id"])
-  @Auth()
+  @Admin()
   Future<Response> updatePlan() async {
     final String? id = request.params?["id"];
     final body = request.body!;
@@ -106,7 +106,7 @@ class PlansController extends Controller with DbMixin {
 
   @Path("/:id", method: "DELETE")
   @Param(["id"])
-  @Auth()
+  @Admin()
   Future<Response> deletePlan() async {
     final String? id = request.params?["id"];
 
