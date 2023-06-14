@@ -1,5 +1,6 @@
 import 'package:tunza/middlewares/auth.dart';
 import 'package:tunza/models/user.dart';
+import 'package:tunza/utils/crypt.dart';
 import 'package:tunza/utils/database.dart';
 import 'package:zero/zero.dart';
 
@@ -16,7 +17,7 @@ class UserController extends Controller with DbMixin {
         'id': request.headers?['id'],
       }).then((value) {
         final row = value.sublist(0, value.length);
-        return User.fromPostgres(row);
+        return User.fromPostgres(row.first);
       });
 
       return Response.ok(user?.toJson());
@@ -27,7 +28,7 @@ class UserController extends Controller with DbMixin {
     }
   }
 
-  @Path("/me", method: "PUT")
+  @Path("/me", method: "PATCH")
   @Auth()
   @Body([
     Field("avatar"),
@@ -42,7 +43,7 @@ class UserController extends Controller with DbMixin {
           'id': request.headers?['id'],
         },
       ).then((value) {
-        return User.fromPostgres(value.sublist(0, value.length));
+        return User.fromPostgres(value.first);
       });
 
       await conn?.query("""
@@ -100,13 +101,14 @@ class UserController extends Controller with DbMixin {
     }
   }
 
-  @Path("/:id", method: "PUT")
+  @Path("/:id", method: "PATCH")
   @Admin()
   @Param(["id"])
   @Body([
     Field("avatar"),
     Field("location"),
     Field("email"),
+    Field("password"),
   ])
   Future<Response> updateUser() async {
     final String? id = request.params?["id"];
@@ -121,7 +123,7 @@ class UserController extends Controller with DbMixin {
       if (value.isEmpty) {
         Response.notFound({"message": "No user found"});
       }
-      return User.fromPostgres(value.sublist(0, value.length));
+      return User.fromPostgres(value.first);
     });
 
     await conn?.query("""
@@ -131,6 +133,7 @@ class UserController extends Controller with DbMixin {
       'avatar': body['avatar'] ?? result?.avatar,
       'location': body['location'] ?? result?.location,
       'email': body['email'] ?? result?.email,
+      'password': hashPassword(body['password'] ?? result?.password),
       'id': result?.id,
     });
 
@@ -159,4 +162,5 @@ class UserController extends Controller with DbMixin {
       });
     }
   }
+
 }
