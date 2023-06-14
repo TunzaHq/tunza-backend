@@ -1,11 +1,12 @@
 import 'package:tunza/middlewares/auth.dart';
 import 'package:tunza/models/plans.dart';
+import 'package:tunza/models/question_answer.dart';
 import 'package:tunza/utils/database.dart';
 import 'package:zero/zero.dart';
 
-class PlansController extends Controller with DbMixin {
+class CoversController extends Controller with DbMixin {
   final Request request;
-  PlansController(this.request) : super(request);
+  CoversController(this.request) : super(request);
 
   @Path("/")
   Future<Response> getAllPlans() async {
@@ -26,9 +27,9 @@ class PlansController extends Controller with DbMixin {
   @Path("/", method: "POST")
   @Admin()
   @Body([
-    Field("name", type: String),
+    Field("name", isRequired: true, type: String),
     Field("description", type: String),
-    Field("price", type: int),
+    Field("price", isRequired: true, type: int),
     Field("icon", type: String),
   ])
   Future<Response> createPlan() async {
@@ -72,9 +73,14 @@ class PlansController extends Controller with DbMixin {
         });
   }
 
-  @Path("/:id", method: "PUT")
+  @Path("/:id", method: "PATCH")
   @Param(["id"])
   @Admin()
+  @Body([
+    Field("name", type: String),
+    Field("description", type: String),
+    Field("price", type: int),
+  ])
   Future<Response> updatePlan() async {
     final String? id = request.params?["id"];
     final body = request.body!;
@@ -118,4 +124,50 @@ class PlansController extends Controller with DbMixin {
       'message': "Plan deleted successfully",
     });
   }
+
+  @Path("/:id/questions")
+  @Auth()
+  Future<Response> getQuestions() async {
+    final String? id = request.params?["id"];
+
+    return await conn?.query('SELECT * FROM questions WHERE plan_id = @id',
+            substitutionValues: {
+              'id': id,
+            }).then((value) {
+          return Response.ok(
+              value.map((e) => Questions.fromPostgres(e).toJson()).toList());
+        }) ??
+        Response.internalServerError({
+          'message': "Error getting questions",
+        });
+  }
+
+  @Path("/:id/questions", method: "POST")
+  @Param(["id"])
+  @Admin()
+  @Body([
+    Field("question", type: String),
+    Field("expects", type: String),
+  ])
+  Future<Response> createQuestion() async {
+    final String? id = request.params?["id"];
+    final body = request.body!;
+
+    return await conn?.query(
+            'INSERT INTO questions (plan_id, question, expects)'
+            'VALUES (@plan_id, @question, @expects)',
+            substitutionValues: {
+              'plan_id': id,
+              'question': body['question'],
+              'expects': body['expects'],
+            }).then((value) {
+          return Response.ok({
+            'message': "Question created successfully",
+          });
+        }) ??
+        Response.internalServerError({
+          'message': "Error creating question",
+        });
+  }
+
 }

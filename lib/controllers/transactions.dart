@@ -29,11 +29,10 @@ class TransactionsController extends Controller with DbMixin {
   }
 
   @Path("/", method: "POST")
-  @Auth()
+  @Admin()
   @Body([
-    Field("subscription_id", type: int),
-    Field("method", type: String),
-    Field("status", type: String),
+    Field("subscription_id", isRequired: true, type: int),
+    Field("method", isRequired: true, type: String),
   ])
   Future<Response> createTransaction() async {
     final body = request.body!;
@@ -44,7 +43,7 @@ class TransactionsController extends Controller with DbMixin {
             substitutionValues: {
               'subscription_id': body['subscription_id'],
               'method': body['method'],
-              'status': body['status'],
+              'status': "PENDING",
             }).then((value) {
           return Response.ok({
             'message': "Transaction created successfully",
@@ -54,7 +53,7 @@ class TransactionsController extends Controller with DbMixin {
           'message': "Error creating transaction",
         });
   }
-  
+
   @Path("/:id")
   @Auth()
   @Param(["id"])
@@ -76,7 +75,7 @@ class TransactionsController extends Controller with DbMixin {
         });
   }
 
-  @Path("/:id", method: "PUT")
+  @Path("/:id", method: "PATCH")
   @Admin()
   @Param(["id"])
   @Body([

@@ -1,4 +1,5 @@
 import 'package:tunza/middlewares/auth.dart';
+import 'package:tunza/models/plans.dart';
 import 'package:tunza/models/subscriptions.dart';
 import 'package:tunza/utils/database.dart';
 import 'package:zero/zero.dart';
@@ -30,11 +31,7 @@ class SubscriptionsController extends Controller with DbMixin {
 
   @Path("/", method: "POST")
   @Auth()
-  @Body([
-    Field("plan_id", type: int),
-    Field("user_id", type: int),
-    Field("status", type: String),
-  ])
+  @Body([Field("plan_id", isRequired: true, type: int)])
   Future<Response> createSubscription() async {
     final body = request.body!;
 
@@ -43,8 +40,8 @@ class SubscriptionsController extends Controller with DbMixin {
             'VALUES (@plan_id, @user_id, @status)',
             substitutionValues: {
               'plan_id': body['plan_id'],
-              'user_id': body['user_id'],
-              'status': body['status'],
+              'user_id': request.headers?['id'],
+              'status': "PENDING",
             }).then((value) {
           return Response.ok({
             'message': "Subscription created successfully",
@@ -61,26 +58,27 @@ class SubscriptionsController extends Controller with DbMixin {
   Future<Response> getSubscription() async {
     final String? id = request.params?["id"];
 
-    return await conn?.query('SELECT * FROM subscriptions WHERE id = @id',
-            substitutionValues: {
-              'id': id,
-            }).then((value) {
-          if (value.isEmpty)
-            return Response.notFound({
-              'message': "Subscription not found",
-            });
-          return Response.ok(Subscriptions.fromPostgres(value.first).toJson());
+    return await conn?.query("""
+          SELECT * FROM subscriptions AS s INNER JOIN plans AS p ON s.plan_id = p.id WHERE s.id = @id
+          """, substitutionValues: {
+          'id': id,
+        }).then((value) {
+          return Response.ok({
+            ...Subscriptions.fromPostgres(value.first.take(6).toList())
+                .toJson(),
+            'plan': Plans.fromPostgres(value.first.skip(6).toList()).toJson(),
+          });
         }) ??
         Response.internalServerError({
           'message': "Error getting subscription",
         });
   }
 
-  @Path("/:id", method: "PUT")
+  @Path("/:id", method: "PATCH")
   @Auth()
   @Param(["id"])
   @Body([
-    Field("status", type: String),
+    Field("status", isRequired: true, type: String),
   ])
   Future<Response> updateSubscription() async {
     final String? id = request.params?["id"];
@@ -104,25 +102,23 @@ class SubscriptionsController extends Controller with DbMixin {
   }
 
   @Path("/:id", method: "DELETE")
-  @Auth()
+  @Admin()
   @Param(["id"])
   Future<Response> deleteSubscription() async {
-    final String? id = request.params?["id"];
+    try {
+      final String? id = request.params?["id"];
 
-    return await conn?.query('DELETE FROM subscriptions WHERE id = @id',
-            substitutionValues: {
-              'id': id,
-            }).then((value) {
-          if (value.isEmpty)
-            return Response.notFound({
-              'message': "Subscription not found",
-            });
-          return Response.ok({
-            'message': "Subscription deleted successfully",
+      await conn?.query('DELETE FROM subscriptions WHERE id = @id',
+          substitutionValues: {
+            'id': id,
           });
-        }) ??
-        Response.internalServerError({
-          'message': "Error deleting subscription",
-        });
+      return Response.ok({
+        'message': "Subscription deleted successfully",
+      });
+    } catch (e) {
+      return Response.internalServerError({
+        'message': "Error deleting subscription",
+      });
+    }
   }
 }

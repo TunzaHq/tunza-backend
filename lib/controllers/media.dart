@@ -14,6 +14,7 @@ class MediaController extends Controller with DbMixin {
       if (value.isEmpty) {
         return Response.notFound({"message": "No media found"});
       }
+      print(value.first);
       return Response.ok(Media.fromPostgres(value.first));
     }).catchError((err) {
       return Response.internalServerError({"message": err.toString()});
@@ -42,26 +43,23 @@ class MediaController extends Controller with DbMixin {
   @Path("/", method: "POST")
   @Body([
     Field("type", isRequired: true),
-    Field("file_name", type: String),
-    Field("file_size", type: int),
-    Field("user_id", type: int),
-    Field("url", type: String),
+    Field("file_name", isRequired: true, type: String),
+    Field("url", isRequired: true, type: String),
   ])
   @Auth()
   Future<Response> createMedia() async {
     final body = request.body!;
-    return await conn!
-        .query(
-            "INSERT INTO media (type, file_name, file_size, user_id, url) VALUES (@type, @file_name, @file_size, @user_id, @url) RETURNING *",
-            substitutionValues: {
-              "type": body["type"],
-              "file_name": body["file_name"],
-              "file_size": body["file_size"],
-              "user_id": body["user_id"],
-              "url": body["url"],
-            })
-        .then((value) {
-      return Response.ok(Media.fromPostgres(value.first));
+    return await conn!.query(
+        "INSERT INTO media (type, file_name,  user_id, url) VALUES (@type, @file_name, @user_id, @url)",
+        substitutionValues: {
+          "type": body["type"],
+          "file_name": body["file_name"],
+          "user_id": int.parse(request.headers?['id'] ?? "0"),
+          "url": body["url"],
+        }).then((value) {
+      return Response.ok({
+        "message": "Media file created successfully",
+      });
     }).catchError((err) {
       return Response.internalServerError({"message": err.toString()});
     });
@@ -72,11 +70,13 @@ class MediaController extends Controller with DbMixin {
   @Param(["id"])
   Future<Response> deleteMedia() async {
     final String? id = request.params?["id"];
-
-    if (id == null) {
-      return Response.badRequest({"message": "No id provided"});
-    }
-
-    return Response.ok("deleteMedia");
+    return await conn!
+        .query("DELETE FROM media WHERE id = @id", substitutionValues: {
+      "id": id,
+    }).then((value) {
+      return Response.ok({"message": "Media file deleted successfully"});
+    }).catchError((err) {
+      return Response.internalServerError({"message": err.toString()});
+    });
   }
 }

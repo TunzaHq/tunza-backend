@@ -1,7 +1,8 @@
+import 'package:tunza/controllers/activities.dart';
 import 'package:tunza/controllers/auth.dart';
 import 'package:tunza/controllers/claims.dart';
 import 'package:tunza/controllers/media.dart';
-import 'package:tunza/controllers/plans.dart';
+import 'package:tunza/controllers/covers.dart';
 import 'package:tunza/controllers/subscriptions.dart';
 import 'package:tunza/controllers/transactions.dart';
 import 'package:tunza/controllers/user.dart';
@@ -24,9 +25,11 @@ void main() async {
         Route(
             path: '/subscriptions',
             controller: (req) => SubscriptionsController(req)),
-        Route(path: "/plans", controller: (req) => PlansController(req)),
+        Route(path: "/covers", controller: (req) => CoversController(req)),
         Route(path: "/claims", controller: (req) => ClaimsController(req)),
-        Route(path: "/404", controller: (req) => IndexController(req))
+        Route(path: "/404", controller: (req) => IndexController(req)),
+        Route(
+            path: "/activities", controller: (req) => ActivitiesController(req))
       ],
     );
 
@@ -48,8 +51,9 @@ class IndexController extends Controller {
       <head>
         <title>Zero</title>
       </head>
-      <body style="height:100vh; width:100vw; display:flex; justify-content:center; align-items:center">
-        <h1>Tunza</h1>
+      <body style="padding:0; margin:0;height:100vh; width:100%; display:flex; justify-content:center; align-items:center">
+         <p> Status: <span style="color:green">OK</span> </p>
+         
        </body>
     </html>
     """;
