@@ -8,7 +8,6 @@ class Database {
 
   PostgreSQLConnection? conn;
 
-
   Future<void> connect() async {
     print("Connecting to database...");
     conn = PostgreSQLConnection(
@@ -20,8 +19,9 @@ class Database {
   Future<void> disconnect() async {
     await conn!.close();
   }
-}
 
+  
+}
 
 mixin DbMixin {
   final Database _db = Database();

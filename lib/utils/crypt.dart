@@ -7,13 +7,13 @@ import 'package:tunza/models/user.dart';
 import 'package:zero/utils/meta.dart';
 
 String token(PostgreSQLResult result) {
-  final user = User.fromPostgres(result);
+  final user = User.fromPostgres(result.first);
 
   final jwt = JWT(
       {
         'id': user.id,
         'name': user.full_name,
-        'email':user.email,
+        'email': user.email,
         'role': user.role,
       },
       issuer: 'tunza',
