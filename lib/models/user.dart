@@ -6,6 +6,7 @@ class User {
   final String? location;
   final DateTime? createdAt;
   final String? role;
+  final String? password;
 
   User({
     required this.id,
@@ -15,16 +16,18 @@ class User {
     this.location,
     this.createdAt,
     this.role,
+    this.password,
   });
 
   factory User.fromPostgres(List<dynamic> result) => User(
-        id: result[0][0],
-        full_name: result[0][1],
-        avatar: result[0][3],
-        email: result[0][2],
-        location: result[0][4],
-        createdAt: result[0][7],
-        role: result[0][6],
+        id: result[0],
+        full_name: result[1],
+        avatar: result[3],
+        email: result[2],
+        location: result[4],
+        createdAt: result[7],
+        role: result[6],
+        password: result[5],
       );
 
   Map<String, dynamic> toJson() {
