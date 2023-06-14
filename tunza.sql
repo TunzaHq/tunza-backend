@@ -16,9 +16,147 @@ SET xmloption = content;
 SET client_min_messages = warning;
 SET row_security = off;
 
+--
+-- Name: activity; Type: TYPE; Schema: public; Owner: bryanbill
+--
+
+CREATE TYPE public.activity AS ENUM (
+    'plans',
+    'claims',
+    'subscriptions',
+    'users',
+    'media',
+    'transactions'
+);
+
+
+ALTER TYPE public.activity OWNER TO bryanbill;
+
+--
+-- Name: activity_type; Type: TYPE; Schema: public; Owner: bryanbill
+--
+
+CREATE TYPE public.activity_type AS ENUM (
+    'login',
+    'logout',
+    'create',
+    'update',
+    'delete',
+    'read'
+);
+
+
+ALTER TYPE public.activity_type OWNER TO bryanbill;
+
+--
+-- Name: answer_type; Type: TYPE; Schema: public; Owner: bryanbill
+--
+
+CREATE TYPE public.answer_type AS ENUM (
+    'media',
+    'text'
+);
+
+
+ALTER TYPE public.answer_type OWNER TO bryanbill;
+
+--
+-- Name: media_type; Type: TYPE; Schema: public; Owner: bryanbill
+--
+
+CREATE TYPE public.media_type AS ENUM (
+    'ID_BACK',
+    'ID_FRONT',
+    'PASSPORT',
+    'ICON',
+    'OTHER'
+);
+
+
+ALTER TYPE public.media_type OWNER TO bryanbill;
+
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
+
+--
+-- Name: activities; Type: TABLE; Schema: public; Owner: bryanbill
+--
+
+CREATE TABLE public.activities (
+    id integer NOT NULL,
+    user_id integer NOT NULL,
+    user_agent text NOT NULL,
+    ip_address inet NOT NULL,
+    location text,
+    activity_type public.activity_type DEFAULT 'read'::public.activity_type NOT NULL,
+    activity public.activity DEFAULT 'users'::public.activity NOT NULL,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+ALTER TABLE public.activities OWNER TO bryanbill;
+
+--
+-- Name: activities_id_seq; Type: SEQUENCE; Schema: public; Owner: bryanbill
+--
+
+CREATE SEQUENCE public.activities_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.activities_id_seq OWNER TO bryanbill;
+
+--
+-- Name: activities_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: bryanbill
+--
+
+ALTER SEQUENCE public.activities_id_seq OWNED BY public.activities.id;
+
+
+--
+-- Name: answers; Type: TABLE; Schema: public; Owner: bryanbill
+--
+
+CREATE TABLE public.answers (
+    id integer NOT NULL,
+    question_id integer NOT NULL,
+    claim_id integer NOT NULL,
+    answer text NOT NULL,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+);
+
+
+ALTER TABLE public.answers OWNER TO bryanbill;
+
+--
+-- Name: answers_id_seq; Type: SEQUENCE; Schema: public; Owner: bryanbill
+--
+
+CREATE SEQUENCE public.answers_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.answers_id_seq OWNER TO bryanbill;
+
+--
+-- Name: answers_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: bryanbill
+--
+
+ALTER SEQUENCE public.answers_id_seq OWNED BY public.answers.id;
+
 
 --
 -- Name: claims; Type: TABLE; Schema: public; Owner: bryanbill
@@ -104,13 +242,12 @@ ALTER SEQUENCE public.claims_resources_id_seq OWNED BY public.claims_resources.i
 
 CREATE TABLE public.media (
     id integer NOT NULL,
-    type character varying(255) NOT NULL,
     file_name character varying(255) NOT NULL,
-    file_size integer NOT NULL,
     user_id integer NOT NULL,
     created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    url character varying(255) NOT NULL
+    url character varying(255) NOT NULL,
+    type public.media_type DEFAULT 'OTHER'::public.media_type NOT NULL
 );
 
 
@@ -175,6 +312,44 @@ ALTER TABLE public.plans_id_seq OWNER TO bryanbill;
 --
 
 ALTER SEQUENCE public.plans_id_seq OWNED BY public.plans.id;
+
+
+--
+-- Name: questions; Type: TABLE; Schema: public; Owner: bryanbill
+--
+
+CREATE TABLE public.questions (
+    id integer NOT NULL,
+    plan_id integer NOT NULL,
+    question text NOT NULL,
+    created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    expects public.answer_type DEFAULT 'text'::public.answer_type NOT NULL
+);
+
+
+ALTER TABLE public.questions OWNER TO bryanbill;
+
+--
+-- Name: questions_id_seq; Type: SEQUENCE; Schema: public; Owner: bryanbill
+--
+
+CREATE SEQUENCE public.questions_id_seq
+    AS integer
+    START WITH 1
+    INCREMENT BY 1
+    NO MINVALUE
+    NO MAXVALUE
+    CACHE 1;
+
+
+ALTER TABLE public.questions_id_seq OWNER TO bryanbill;
+
+--
+-- Name: questions_id_seq; Type: SEQUENCE OWNED BY; Schema: public; Owner: bryanbill
+--
+
+ALTER SEQUENCE public.questions_id_seq OWNED BY public.questions.id;
 
 
 --
@@ -295,6 +470,20 @@ ALTER SEQUENCE public.users_id_seq OWNED BY public.users.id;
 
 
 --
+-- Name: activities id; Type: DEFAULT; Schema: public; Owner: bryanbill
+--
+
+ALTER TABLE ONLY public.activities ALTER COLUMN id SET DEFAULT nextval('public.activities_id_seq'::regclass);
+
+
+--
+-- Name: answers id; Type: DEFAULT; Schema: public; Owner: bryanbill
+--
+
+ALTER TABLE ONLY public.answers ALTER COLUMN id SET DEFAULT nextval('public.answers_id_seq'::regclass);
+
+
+--
 -- Name: claims id; Type: DEFAULT; Schema: public; Owner: bryanbill
 --
 
@@ -323,6 +512,13 @@ ALTER TABLE ONLY public.plans ALTER COLUMN id SET DEFAULT nextval('public.plans_
 
 
 --
+-- Name: questions id; Type: DEFAULT; Schema: public; Owner: bryanbill
+--
+
+ALTER TABLE ONLY public.questions ALTER COLUMN id SET DEFAULT nextval('public.questions_id_seq'::regclass);
+
+
+--
 -- Name: subscriptions id; Type: DEFAULT; Schema: public; Owner: bryanbill
 --
 
@@ -344,11 +540,34 @@ ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_
 
 
 --
+-- Data for Name: activities; Type: TABLE DATA; Schema: public; Owner: bryanbill
+--
+
+COPY public.activities (id, user_id, user_agent, ip_address, location, activity_type, activity, created_at, updated_at) FROM stdin;
+1	5	Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.0	1.1.1.1	Nairobi	login	users	2023-06-13 11:44:38.763237	2023-06-13 11:44:38.763237
+4	5	Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.0	1.1.1.1	Nairobi	read	users	2023-06-13 11:49:01.466838	2023-06-13 11:49:01.466838
+5	5	Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.0	1.1.1.1	Nairobi	read	users	2023-06-13 11:50:07.526894	2023-06-13 11:50:07.526894
+7	5	Thunder Client (https://www.thunderclient.com)	127.0.0.1	\N	login	users	2023-06-13 09:43:08.675975	2023-06-13 09:43:08.675975
+9	5	PostmanRuntime/7.32.2	127.0.0.1	Unknown	read	users	2023-06-14 09:37:33.994078	2023-06-14 09:37:33.994078
+10	5	PostmanRuntime/7.32.2	127.0.0.1	Unknown	read	users	2023-06-14 09:39:03.557707	2023-06-14 09:39:03.557707
+\.
+
+
+--
+-- Data for Name: answers; Type: TABLE DATA; Schema: public; Owner: bryanbill
+--
+
+COPY public.answers (id, question_id, claim_id, answer, created_at, updated_at) FROM stdin;
+4	6	8	Mr. John Doe	2023-06-14 09:18:11.408457	2023-06-14 09:18:11.408457
+\.
+
+
+--
 -- Data for Name: claims; Type: TABLE DATA; Schema: public; Owner: bryanbill
 --
 
 COPY public.claims (id, description, subscription_id, location, amount, created_at, updated_at, status) FROM stdin;
-3	fgf	2	23.45,45.67	45800	2023-06-11 20:38:19.424938	2023-06-11 20:38:19.424938	CANCELLED
+8	Some description for a claim	4	Nairobi	45800	2023-06-14 09:16:51.689452	2023-06-14 09:16:51.689452	PENDING
 \.
 
 
@@ -364,7 +583,13 @@ COPY public.claims_resources (id, claim_id, media_id, is_visible, created_at, up
 -- Data for Name: media; Type: TABLE DATA; Schema: public; Owner: bryanbill
 --
 
-COPY public.media (id, type, file_name, file_size, user_id, created_at, updated_at, url) FROM stdin;
+COPY public.media (id, file_name, user_id, created_at, updated_at, url, type) FROM stdin;
+2	akiba.svg	5	2023-06-14 09:46:15.13579	2023-06-14 09:46:15.13579	https://pics.me	ICON
+3	akiba.svg	5	2023-06-14 09:46:57.647001	2023-06-14 09:46:57.647001	https://pics.me	ICON
+4	akiba.svg	5	2023-06-14 09:48:02.160552	2023-06-14 09:48:02.160552	https://pics.me	ICON
+5	akiba.svg	5	2023-06-14 09:50:26.120867	2023-06-14 09:50:26.120867	https://pics.me	ICON
+6	akiba.svg	5	2023-06-14 09:51:03.694575	2023-06-14 09:51:03.694575	https://pics.me	ICON
+7	akiba.svg	5	2023-06-14 09:55:22.116729	2023-06-14 09:55:22.116729	https://pics.me	ICON
 \.
 
 
@@ -374,6 +599,17 @@ COPY public.media (id, type, file_name, file_size, user_id, created_at, updated_
 
 COPY public.plans (id, name, description, price, icon, created_at, updated_at) FROM stdin;
 1	Akiba	SOme description of all plans	340	https://pics.me	2023-06-11 16:23:32.611994	2023-06-11 16:23:32.611994
+4	Britam Biashara 2	Some super long description	600	https://pics.me/@ico	2023-06-14 07:25:40.870548	2023-06-14 10:40:59.061595
+\.
+
+
+--
+-- Data for Name: questions; Type: TABLE DATA; Schema: public; Owner: bryanbill
+--
+
+COPY public.questions (id, plan_id, question, created_at, updated_at, expects) FROM stdin;
+5	4	Who are the witnesses? (Comma separated)	2023-06-14 07:50:39.460621	2023-06-14 07:50:39.460621	text
+6	4	Who are the witnesses? (Comma separated)	2023-06-14 09:15:48.513742	2023-06-14 09:15:48.513742	text
 \.
 
 
@@ -382,7 +618,7 @@ COPY public.plans (id, name, description, price, icon, created_at, updated_at) F
 --
 
 COPY public.subscriptions (id, plan_id, user_id, status, created_at, updated_at) FROM stdin;
-2	1	5	ACTIVE	2023-06-11 16:36:10.8965	2023-06-11 16:36:10.8965
+4	4	5	PENDING	2023-06-14 09:16:37.169501	2023-06-14 09:16:37.169501
 \.
 
 
@@ -391,7 +627,6 @@ COPY public.subscriptions (id, plan_id, user_id, status, created_at, updated_at)
 --
 
 COPY public.transactions (id, subscription_id, method, status, created_at, updated_at) FROM stdin;
-2	2	MPESA	SUCCESS	2023-06-11 16:39:27.14387	2023-06-11 16:39:27.14387
 \.
 
 
@@ -402,15 +637,30 @@ COPY public.transactions (id, subscription_id, method, status, created_at, updat
 COPY public.users (id, full_name, email, avatar, location, password, role, created_at, updated_at) FROM stdin;
 1	John Doe	john@doe	https://via.placeholder.com/150	Nairobi	123456	admin	2023-06-11 12:28:01.814698	2023-06-11 12:28:01.814698
 2	John Doe	john@example.com		\N	1345c5782b19856518b5df660c4b8dc138d9f3160310789e291f81095693e1dc	user	2023-06-11 09:34:56.517728	2023-06-11 09:34:56.517728
-5	John Doe	bill@namani.co	https://pics.me	Kenya	1345c5782b19856518b5df660c4b8dc138d9f3160310789e291f81095693e1dc	user	2023-06-11 09:38:46.051149	2023-06-11 09:38:46.051149
+6	John Doe	doe@namani.co		\N	d6f563387976ca6845f66ef627756e0d87bd06d2c6182b3ddb97f32bff09bc0a	user	2023-06-14 06:50:28.64315	2023-06-14 06:50:28.64315
+5	John Doe	doe2@namani.co	https://pics.me	Kondele	9b381595c51a88b5e96d63d7151779fe29008199408135d2199ef82da1692166	admin	2023-06-11 09:38:46.051149	2023-06-11 09:38:46.051149
 \.
+
+
+--
+-- Name: activities_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bryanbill
+--
+
+SELECT pg_catalog.setval('public.activities_id_seq', 10, true);
+
+
+--
+-- Name: answers_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bryanbill
+--
+
+SELECT pg_catalog.setval('public.answers_id_seq', 4, true);
 
 
 --
 -- Name: claims_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bryanbill
 --
 
-SELECT pg_catalog.setval('public.claims_id_seq', 3, true);
+SELECT pg_catalog.setval('public.claims_id_seq', 8, true);
 
 
 --
@@ -424,35 +674,58 @@ SELECT pg_catalog.setval('public.claims_resources_id_seq', 1, false);
 -- Name: media_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bryanbill
 --
 
-SELECT pg_catalog.setval('public.media_id_seq', 1, false);
+SELECT pg_catalog.setval('public.media_id_seq', 7, true);
 
 
 --
 -- Name: plans_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bryanbill
 --
 
-SELECT pg_catalog.setval('public.plans_id_seq', 1, true);
+SELECT pg_catalog.setval('public.plans_id_seq', 4, true);
+
+
+--
+-- Name: questions_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bryanbill
+--
+
+SELECT pg_catalog.setval('public.questions_id_seq', 6, true);
 
 
 --
 -- Name: subscriptions_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bryanbill
 --
 
-SELECT pg_catalog.setval('public.subscriptions_id_seq', 2, true);
+SELECT pg_catalog.setval('public.subscriptions_id_seq', 4, true);
 
 
 --
 -- Name: transactions_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bryanbill
 --
 
-SELECT pg_catalog.setval('public.transactions_id_seq', 2, true);
+SELECT pg_catalog.setval('public.transactions_id_seq', 5, true);
 
 
 --
 -- Name: users_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bryanbill
 --
 
-SELECT pg_catalog.setval('public.users_id_seq', 5, true);
+SELECT pg_catalog.setval('public.users_id_seq', 6, true);
+
+
+--
+-- Name: activities activities_pkey; Type: CONSTRAINT; Schema: public; Owner: bryanbill
+--
+
+ALTER TABLE ONLY public.activities
+    ADD CONSTRAINT activities_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: answers answers_pkey; Type: CONSTRAINT; Schema: public; Owner: bryanbill
+--
+
+ALTER TABLE ONLY public.answers
+    ADD CONSTRAINT answers_pkey PRIMARY KEY (id);
 
 
 --
@@ -488,6 +761,14 @@ ALTER TABLE ONLY public.plans
 
 
 --
+-- Name: questions questions_pkey; Type: CONSTRAINT; Schema: public; Owner: bryanbill
+--
+
+ALTER TABLE ONLY public.questions
+    ADD CONSTRAINT questions_pkey PRIMARY KEY (id);
+
+
+--
 -- Name: subscriptions subscriptions_pkey; Type: CONSTRAINT; Schema: public; Owner: bryanbill
 --
 
@@ -520,6 +801,14 @@ ALTER TABLE ONLY public.users
 
 
 --
+-- Name: answers fk_claim_id; Type: FK CONSTRAINT; Schema: public; Owner: bryanbill
+--
+
+ALTER TABLE ONLY public.answers
+    ADD CONSTRAINT fk_claim_id FOREIGN KEY (claim_id) REFERENCES public.claims(id) ON DELETE CASCADE;
+
+
+--
 -- Name: claims_resources fk_claims_resources_claim_id; Type: FK CONSTRAINT; Schema: public; Owner: bryanbill
 --
 
@@ -544,6 +833,22 @@ ALTER TABLE ONLY public.media
 
 
 --
+-- Name: questions fk_plan_id; Type: FK CONSTRAINT; Schema: public; Owner: bryanbill
+--
+
+ALTER TABLE ONLY public.questions
+    ADD CONSTRAINT fk_plan_id FOREIGN KEY (plan_id) REFERENCES public.plans(id) ON DELETE CASCADE;
+
+
+--
+-- Name: answers fk_question_id; Type: FK CONSTRAINT; Schema: public; Owner: bryanbill
+--
+
+ALTER TABLE ONLY public.answers
+    ADD CONSTRAINT fk_question_id FOREIGN KEY (question_id) REFERENCES public.questions(id) ON DELETE CASCADE;
+
+
+--
 -- Name: subscriptions fk_subscriptions_plan_id; Type: FK CONSTRAINT; Schema: public; Owner: bryanbill
 --
 
@@ -565,6 +870,14 @@ ALTER TABLE ONLY public.subscriptions
 
 ALTER TABLE ONLY public.transactions
     ADD CONSTRAINT fk_transactions_subscription_id FOREIGN KEY (subscription_id) REFERENCES public.subscriptions(id) ON UPDATE CASCADE ON DELETE CASCADE;
+
+
+--
+-- Name: activities fk_user_id; Type: FK CONSTRAINT; Schema: public; Owner: bryanbill
+--
+
+ALTER TABLE ONLY public.activities
+    ADD CONSTRAINT fk_user_id FOREIGN KEY (user_id) REFERENCES public.users(id) ON DELETE CASCADE;
 
 
 --
