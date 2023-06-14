@@ -1,4 +1,3 @@
-import 'package:postgres/postgres.dart';
 
 class Plans {
   final int id;
@@ -19,7 +18,7 @@ class Plans {
     required this.updated_at,
   });
 
-  factory Plans.fromPostgres(PostgreSQLResultRow row) {
+  factory Plans.fromPostgres(List row) {
     return Plans(
       id: row[0],
       name: row[1],

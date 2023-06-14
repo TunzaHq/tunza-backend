@@ -1,4 +1,3 @@
-import 'package:postgres/postgres.dart';
 
 class Subscriptions {
   final int id;
@@ -17,7 +16,7 @@ class Subscriptions {
     required this.updatedAt,
   });
 
-  factory Subscriptions.fromPostgres(PostgreSQLResultRow result) {
+  factory Subscriptions.fromPostgres(List result) {
     return Subscriptions(
         id: result[0],
         planId: result[1],

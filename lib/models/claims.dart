@@ -1,4 +1,3 @@
-import 'package:postgres/postgres.dart';
 
 class Claims {
   final int id;
@@ -20,7 +19,7 @@ class Claims {
       required this.updatedAt,
       required this.status});
 
-  factory Claims.fromPostgres(PostgreSQLResultRow row) => Claims(
+  factory Claims.fromPostgres(List row) => Claims(
       id: row[0],
       description: row[1],
       subscriptionId: row[2],
