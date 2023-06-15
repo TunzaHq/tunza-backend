@@ -32,7 +32,6 @@ class Media {
         "id": id,
         "type": type,
         "file_name": fileName,
-        "user_id": userId,
         "created_at": createdAt.toIso8601String(),
         "updated_at": updatedAt.toIso8601String(),
         "url": url,

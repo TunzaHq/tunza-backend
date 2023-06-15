@@ -1,31 +1,28 @@
-import 'package:postgres/postgres.dart';
-
 class Transactions {
   final int id;
   final int subscriptionId;
   final String method;
-  final String status;
   final DateTime createdAt;
   final DateTime updatedAt;
+  final String status;
 
   Transactions({
     required this.id,
     required this.subscriptionId,
     required this.method,
-    required this.status,
     required this.createdAt,
     required this.updatedAt,
+    required this.status,
   });
 
-
-  factory Transactions.fromPostgres(PostgreSQLResultRow result) {
+  factory Transactions.fromPostgres(List result) {
     return Transactions(
         id: result[0],
         subscriptionId: result[1],
         method: result[2],
-        status: result[3],
-        createdAt: result[4],
-        updatedAt: result[5]);
+        createdAt: result[3],
+        updatedAt: result[4],
+        status: result[5]);
   }
 
   Map<String, dynamic> toJson() {
