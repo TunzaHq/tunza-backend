@@ -1,4 +1,4 @@
-import 'package:tunza/utils/crypt.dart';
+import 'package:dart_jsonwebtoken/dart_jsonwebtoken.dart';
 import 'package:zero/zero.dart';
 
 class Auth extends Middleware {
@@ -14,7 +14,7 @@ class Auth extends Middleware {
           response: Response.unauthorized({'message': 'Unauthorized'}),
         );
 
-      final jwt = verify(tkn);
+      final jwt = JWT.verify(tkn, SecretKey(meta.env['JWT_SECRET']!));
 
       if (jwt.payload['role'] == null) {
         return RequestOrResponse(
@@ -33,7 +33,6 @@ class Auth extends Middleware {
   }
 }
 
-
 class Admin extends Middleware {
   const Admin();
 
@@ -41,14 +40,13 @@ class Admin extends Middleware {
   Future<RequestOrResponse> handle(Request request) async {
     try {
       final tkn =
-      request.headers?['authorization']?.split('Bearer').last.trim();
+          request.headers?['authorization']?.split('Bearer').last.trim();
       if (tkn == null)
         return RequestOrResponse(
           response: Response.unauthorized({'message': 'Unauthorized'}),
         );
 
-      final jwt = verify(tkn);
-
+      final jwt = JWT.verify(tkn, SecretKey(meta.env['JWT_SECRET']!));
 
       if (jwt.payload['role'] != 'admin') {
         return RequestOrResponse(
