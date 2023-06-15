@@ -75,6 +75,32 @@ CREATE TYPE public.media_type AS ENUM (
 
 ALTER TYPE public.media_type OWNER TO bryanbill;
 
+--
+-- Name: txn_method; Type: TYPE; Schema: public; Owner: bryanbill
+--
+
+CREATE TYPE public.txn_method AS ENUM (
+    'MPESA',
+    'FW',
+    'VISA'
+);
+
+
+ALTER TYPE public.txn_method OWNER TO bryanbill;
+
+--
+-- Name: txn_status; Type: TYPE; Schema: public; Owner: bryanbill
+--
+
+CREATE TYPE public.txn_status AS ENUM (
+    'PENDING',
+    'SUCCESS',
+    'FAILED'
+);
+
+
+ALTER TYPE public.txn_status OWNER TO bryanbill;
+
 SET default_tablespace = '';
 
 SET default_table_access_method = heap;
@@ -170,7 +196,8 @@ CREATE TABLE public.claims (
     amount integer NOT NULL,
     created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
     updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    status text DEFAULT 'pending'::text NOT NULL
+    status text DEFAULT 'pending'::text NOT NULL,
+    user_id integer
 );
 
 
@@ -397,10 +424,10 @@ ALTER SEQUENCE public.subscriptions_id_seq OWNED BY public.subscriptions.id;
 CREATE TABLE public.transactions (
     id integer NOT NULL,
     subscription_id integer NOT NULL,
-    method character varying(255) NOT NULL,
-    status character varying(255) NOT NULL,
+    method public.txn_method NOT NULL,
     created_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
-    updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL
+    updated_at timestamp without time zone DEFAULT CURRENT_TIMESTAMP NOT NULL,
+    status public.txn_status DEFAULT 'PENDING'::public.txn_status
 );
 
 
@@ -544,12 +571,6 @@ ALTER TABLE ONLY public.users ALTER COLUMN id SET DEFAULT nextval('public.users_
 --
 
 COPY public.activities (id, user_id, user_agent, ip_address, location, activity_type, activity, created_at, updated_at) FROM stdin;
-1	5	Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.0	1.1.1.1	Nairobi	login	users	2023-06-13 11:44:38.763237	2023-06-13 11:44:38.763237
-4	5	Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.0	1.1.1.1	Nairobi	read	users	2023-06-13 11:49:01.466838	2023-06-13 11:49:01.466838
-5	5	Mozilla/5.0 (Windows NT 6.1; WOW64; rv:40.0) Gecko/20100101 Firefox/40.0	1.1.1.1	Nairobi	read	users	2023-06-13 11:50:07.526894	2023-06-13 11:50:07.526894
-7	5	Thunder Client (https://www.thunderclient.com)	127.0.0.1	\N	login	users	2023-06-13 09:43:08.675975	2023-06-13 09:43:08.675975
-9	5	PostmanRuntime/7.32.2	127.0.0.1	Unknown	read	users	2023-06-14 09:37:33.994078	2023-06-14 09:37:33.994078
-10	5	PostmanRuntime/7.32.2	127.0.0.1	Unknown	read	users	2023-06-14 09:39:03.557707	2023-06-14 09:39:03.557707
 \.
 
 
@@ -558,7 +579,6 @@ COPY public.activities (id, user_id, user_agent, ip_address, location, activity_
 --
 
 COPY public.answers (id, question_id, claim_id, answer, created_at, updated_at) FROM stdin;
-4	6	8	Mr. John Doe	2023-06-14 09:18:11.408457	2023-06-14 09:18:11.408457
 \.
 
 
@@ -566,8 +586,7 @@ COPY public.answers (id, question_id, claim_id, answer, created_at, updated_at) 
 -- Data for Name: claims; Type: TABLE DATA; Schema: public; Owner: bryanbill
 --
 
-COPY public.claims (id, description, subscription_id, location, amount, created_at, updated_at, status) FROM stdin;
-8	Some description for a claim	4	Nairobi	45800	2023-06-14 09:16:51.689452	2023-06-14 09:16:51.689452	PENDING
+COPY public.claims (id, description, subscription_id, location, amount, created_at, updated_at, status, user_id) FROM stdin;
 \.
 
 
@@ -584,12 +603,6 @@ COPY public.claims_resources (id, claim_id, media_id, is_visible, created_at, up
 --
 
 COPY public.media (id, file_name, user_id, created_at, updated_at, url, type) FROM stdin;
-2	akiba.svg	5	2023-06-14 09:46:15.13579	2023-06-14 09:46:15.13579	https://pics.me	ICON
-3	akiba.svg	5	2023-06-14 09:46:57.647001	2023-06-14 09:46:57.647001	https://pics.me	ICON
-4	akiba.svg	5	2023-06-14 09:48:02.160552	2023-06-14 09:48:02.160552	https://pics.me	ICON
-5	akiba.svg	5	2023-06-14 09:50:26.120867	2023-06-14 09:50:26.120867	https://pics.me	ICON
-6	akiba.svg	5	2023-06-14 09:51:03.694575	2023-06-14 09:51:03.694575	https://pics.me	ICON
-7	akiba.svg	5	2023-06-14 09:55:22.116729	2023-06-14 09:55:22.116729	https://pics.me	ICON
 \.
 
 
@@ -618,7 +631,6 @@ COPY public.questions (id, plan_id, question, created_at, updated_at, expects) F
 --
 
 COPY public.subscriptions (id, plan_id, user_id, status, created_at, updated_at) FROM stdin;
-4	4	5	PENDING	2023-06-14 09:16:37.169501	2023-06-14 09:16:37.169501
 \.
 
 
@@ -626,7 +638,7 @@ COPY public.subscriptions (id, plan_id, user_id, status, created_at, updated_at)
 -- Data for Name: transactions; Type: TABLE DATA; Schema: public; Owner: bryanbill
 --
 
-COPY public.transactions (id, subscription_id, method, status, created_at, updated_at) FROM stdin;
+COPY public.transactions (id, subscription_id, method, created_at, updated_at, status) FROM stdin;
 \.
 
 
@@ -635,10 +647,6 @@ COPY public.transactions (id, subscription_id, method, status, created_at, updat
 --
 
 COPY public.users (id, full_name, email, avatar, location, password, role, created_at, updated_at) FROM stdin;
-1	John Doe	john@doe	https://via.placeholder.com/150	Nairobi	123456	admin	2023-06-11 12:28:01.814698	2023-06-11 12:28:01.814698
-2	John Doe	john@example.com		\N	1345c5782b19856518b5df660c4b8dc138d9f3160310789e291f81095693e1dc	user	2023-06-11 09:34:56.517728	2023-06-11 09:34:56.517728
-6	John Doe	doe@namani.co		\N	d6f563387976ca6845f66ef627756e0d87bd06d2c6182b3ddb97f32bff09bc0a	user	2023-06-14 06:50:28.64315	2023-06-14 06:50:28.64315
-5	John Doe	doe2@namani.co	https://pics.me	Kondele	9b381595c51a88b5e96d63d7151779fe29008199408135d2199ef82da1692166	admin	2023-06-11 09:38:46.051149	2023-06-11 09:38:46.051149
 \.
 
 
@@ -702,7 +710,7 @@ SELECT pg_catalog.setval('public.subscriptions_id_seq', 4, true);
 -- Name: transactions_id_seq; Type: SEQUENCE SET; Schema: public; Owner: bryanbill
 --
 
-SELECT pg_catalog.setval('public.transactions_id_seq', 5, true);
+SELECT pg_catalog.setval('public.transactions_id_seq', 6, true);
 
 
 --
@@ -798,6 +806,14 @@ ALTER TABLE ONLY public.users
 
 ALTER TABLE ONLY public.users
     ADD CONSTRAINT users_pkey PRIMARY KEY (id);
+
+
+--
+-- Name: claims claims_user_id_fkey; Type: FK CONSTRAINT; Schema: public; Owner: bryanbill
+--
+
+ALTER TABLE ONLY public.claims
+    ADD CONSTRAINT claims_user_id_fkey FOREIGN KEY (user_id) REFERENCES public.users(id);
 
 
 --
