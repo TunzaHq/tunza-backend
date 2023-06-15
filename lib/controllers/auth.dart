@@ -1,5 +1,4 @@
 import 'package:postgres/postgres.dart';
-import 'package:tunza/utils/crypt.dart';
 import 'package:tunza/utils/database.dart';
 import 'package:zero/zero.dart';
 
@@ -10,8 +9,18 @@ class AuthController extends Controller with DbMixin {
 
   @Path("/login", method: "POST")
   @Body([
-    Field("email", isRequired: true, type: String),
-    Field("password", isRequired: true, type: String),
+    Field(
+      "email",
+      isRequired: true,
+      type: String,
+      pattern: r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+    ),
+    Field(
+      "password",
+      isRequired: true,
+      type: String,
+      pattern: r'^(?=.*[A-Za-z])(?=.*\d)[A-Za-z\d]{8,}$',
+    ),
   ])
   Future<Response> login() async {
     final body = request.body!;
@@ -38,7 +47,12 @@ class AuthController extends Controller with DbMixin {
   @Path("/register", method: "POST")
   @Body([
     Field("full_name", isRequired: true, type: String),
-    Field("email", isRequired: true, type: String),
+    Field(
+      "email",
+      isRequired: true,
+      type: String,
+      pattern: r'^[\w-\.]+@([\w-]+\.)+[\w-]{2,4}$',
+    ),
     Field("password", isRequired: true, type: String),
   ])
   Future<Response> register() async {
