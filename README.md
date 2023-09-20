@@ -31,8 +31,9 @@ This is the backend server for Tunza. It is built using Dart on Zero framework.
    ```sh
     cp .env.example .env
     ```
+4. Import the [Tunza.sql](./tunza.sql) file into your PostgreSQL instance
 
-4. Run the server
+5. Run the server
 
    ```sh
    zero run
